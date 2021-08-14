@@ -1,0 +1,406 @@
+openapi: 3.0.1
+info:
+  title: Swagger User
+  description: 'This is a User management server.'
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: parthipanjr@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Find out more about Swagger
+  url: http://swagger.io
+servers:
+  - url: https://192.168.43.98:5000/api/v1
+tags:
+  - name: User
+    description: Operations about user
+    externalDocs:
+      description: Find out more about our store
+      url: http://swagger.io
+paths:
+  /users:
+    post:
+      tags:
+        - User
+      summary: Create user
+      description: This can only be done by the logged in user.
+      operationId: createUser
+      requestBody:
+        description: Created user object
+        content:
+          'application/json':
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      responses:
+        201:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveUserResponse'
+        422:
+          $ref: '#/components/responses/ValidationError'
+        default:
+          $ref: '#/components/responses/Generic'
+    get:
+      tags:
+        - User
+      summary: Returns list of users.
+      operationId: getUsers
+      parameters:
+        - $ref: '#/components/parameters/offsetParam'
+        - $ref: '#/components/parameters/limitParam'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersResponse'
+        default:
+          $ref: '#/components/responses/Generic'
+  /user/{user_id}:
+    get:
+      tags:
+        - User
+      summary: Get user by user id
+      operationId: getUserById
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        404:
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Generic'
+    put:
+      tags:
+        - User
+      summary: Update user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        description: Updated user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveUserResponse'
+        404:
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Generic'
+      x-codegen-request-body-name: body
+    patch:
+      tags:
+        - User
+      summary: Partial user update
+      description: This can only be done by the logged in user.
+      operationId: partialUpdateUser
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        description: Updated user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartialUserRequest'
+        required: true
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveUserResponse'
+        404:
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Generic'
+      x-codegen-request-body-name: body
+    delete:
+      tags:
+        - User
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        204:
+          $ref: '#/components/responses/NoContent'
+        404:
+          $ref: '#/components/responses/NotFound'
+        default:
+          $ref: '#/components/responses/Generic'
+components:
+  parameters:
+    offsetParam: # Can be referenced via '#/components/parameters/offsetParam'
+      name: page_num
+      in: query
+      description: Number of items to skip before returning the results.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    limitParam: # Can be referenced as '#/components/parameters/limitParam'
+      name: page_size
+      in: query
+      description: Maximum number of items to return.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 10
+    UserId: # Can be referenced as '#/components/parameters/UserId'
+      name: user_id
+      in: path
+      description: 'The user id that needs to be fetched.'
+      required: true
+      schema:
+        type: string
+        format: uuid
+        maxLength: 36
+  schemas:
+    DefaultResponse: # Can be referenced via '#/components/schemas/DefaultResponse'
+      type: object
+      properties:
+        data:
+          type: string
+          nullable: true
+          default: null
+        errors:
+          type: object
+          properties: { }
+          nullable: true
+          default: null
+          additionalProperties: false
+        message:
+          type: string
+          nullable: true
+      additionalProperties: false
+    Errors: # Can be referenced via '#/components/schemas/Errors'
+      type: object
+      properties: { }
+      additionalProperties: false
+      example:
+        {
+          first_name: {
+            "alpha": "The first_name must only contain letters.",
+            "max": "The first_name must not be greater than 50."
+          },
+          email: {
+            "unique": "The email has already been taken."
+          }
+        }
+    ValidationError: # Can be referenced via '#/components/schemas/ValidationError'
+      type: object
+      properties:
+        data:
+          type: string
+          nullable: true
+          default: null
+        errors:
+          $ref: '#/components/schemas/Errors'
+        message:
+          type: string
+          nullable: true
+          default: null
+      additionalProperties: false
+    UserRequest: # Can be referenced via '#/components/schemas/UserRequest'
+      type: object
+      required:
+        - first_name
+        - email
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          nullable: true
+          minLength: 5
+        status:
+          type: boolean
+          default: false
+          description: User Status
+      additionalProperties: false
+    PartialUserRequest: # Can be referenced via '#/components/schemas/PartialUserRequest'
+      type: object
+      properties:
+        first_name:
+          type: string
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          nullable: true
+        status:
+          type: boolean
+          default: false
+          description: User Status
+      additionalProperties: false
+    SaveUserResponse: # Can be referenced via '#/components/schemas/SaveUserResponse'
+      type: object
+      properties:
+        data:
+          type: string
+          format: uuid
+          maxLength: 36
+        errors:
+          type: object
+          properties: { }
+          nullable: true
+          default: null
+          additionalProperties: false
+        message:
+          type: string
+          nullable: true
+          default: null
+      additionalProperties: false
+    User: # Can be referenced via '#/components/schemas/User'
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        first_name:
+          type: string
+        last_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+        dob:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: boolean
+          default: false
+          description: User Status
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      additionalProperties: false
+    Pagination: # Can be referenced via '#/components/schemas/Pagination'
+      type: object
+      properties:
+        result:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/User'
+        next:
+          type: integer
+          format: int32
+          nullable: true
+        previous:
+          type: integer
+          format: int32
+          nullable: true
+        total:
+          type: integer
+          format: int64
+      additionalProperties: false
+    UsersResponse: # Can be referenced via '#/components/schemas/UsersResponse'
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/Pagination'
+        errors:
+          type: object
+          properties: { }
+          default: null
+          nullable: true
+          additionalProperties: false
+        message:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+    UserResponse: # Can be referenced via '#/components/schemas/UserResponse'
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/User'
+        errors:
+          type: object
+          properties: { }
+          default: null
+          nullable: true
+          additionalProperties: false
+        message:
+          type: string
+          default: null
+          nullable: true
+      additionalProperties: false
+  responses:
+    Generic: # Can be referenced as '#/components/responses/Generic'
+      description: defalut response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DefaultResponse'
+    ValidationError: # Can be referenced as '#/components/responses/ValidationError'
+      description: validation failure
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+    NotFound: # Can be referenced as '#/components/responses/NotFound'
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DefaultResponse'
+    NoContent: # Can be referenced as '#/components/responses/NoContent'
+      description: The resource was deleted successfully.
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+security: [
+  { api_key: [ ] }
+]
